@@ -1,0 +1,46 @@
+@import 'tailwindcss';
+
+:root {
+  color-scheme: dark;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+body {
+  margin: 0;
+  background-color: #050507;
+  background-image: radial-gradient(circle at 50% 0%, #161a30 0%, #050507 75%);
+  background-attachment: fixed;
+  color: #cbd5e1;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Custom scrollbars for Immersive UI */
+.lily-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.lily-scroll::-webkit-scrollbar-thumb {
+  background: rgba(34, 211, 238, 0.2);
+  border-radius: 999px;
+}
+.lily-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(34, 211, 238, 0.4);
+}
+.lily-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Glow effects */
+.glow-cyan {
+  box-shadow: 0 0 20px rgba(34, 211, 238, 0.25);
+}
+.glow-cyan-sm {
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.2);
+}
+.glow-green-dot {
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+}
+

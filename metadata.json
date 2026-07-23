@@ -1,0 +1,6 @@
+{
+  "name": "Uray Radar",
+  "description": "Real-time pump.fun token discovery board with transparent on-chain quality gates.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
