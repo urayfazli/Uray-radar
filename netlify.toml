@@ -3,6 +3,9 @@
   publish = "dist"
   functions = "netlify/functions"
 
+[functions]
+  included_files = ["data/**"]
+
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/api"

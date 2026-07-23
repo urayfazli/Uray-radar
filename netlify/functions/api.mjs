@@ -2,15 +2,24 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 function readJsonFile(filename) {
-  try {
-    const filePath = path.resolve(process.cwd(), 'data', filename);
-    if (fs.existsSync(filePath)) {
-      const content = fs.readFileSync(filePath, 'utf-8');
-      return JSON.parse(content);
+  const possiblePaths = [
+    path.resolve(process.cwd(), 'data', filename),
+    path.resolve(process.cwd(), '..', 'data', filename),
+    path.resolve('/var/task', 'data', filename),
+    path.join(process.cwd(), 'data', filename)
+  ];
+
+  for (const filePath of possiblePaths) {
+    try {
+      if (fs.existsSync(filePath)) {
+        const content = fs.readFileSync(filePath, 'utf-8');
+        return JSON.parse(content);
+      }
+    } catch (err) {
+      // check next path
     }
-  } catch (err) {
-    console.error(`[Netlify Function] Error reading ${filename}:`, err);
   }
+  console.warn(`[Netlify Function] Could not find or parse ${filename} in paths:`, possiblePaths);
   return null;
 }
 
