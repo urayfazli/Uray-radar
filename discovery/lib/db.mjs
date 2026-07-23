@@ -16,23 +16,47 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const dbFile = path.isAbsolute(config.dbPath) ? config.dbPath : path.join(root, config.dbPath);
 fs.mkdirSync(path.dirname(dbFile), { recursive: true });
 
-const db = new Database(dbFile);
-// busy_timeout MUST come first: switching to WAL takes an exclusive lock, and
-// with several daemon/API processes opening a fresh DB at once it would throw
-// SQLITE_BUSY without a timeout to wait on.
-db.pragma('busy_timeout = 8000');
-try { db.pragma('journal_mode = WAL'); } catch { /* another process is converting it; fine */ }
-db.exec(`
-  CREATE TABLE IF NOT EXISTS coin (
-    feed TEXT, mint TEXT, data TEXT, mcap REAL,
-    updated_at INTEGER, first_seen INTEGER,
-    PRIMARY KEY (feed, mint)
-  );
-  CREATE INDEX IF NOT EXISTS idx_coin_feed_upd ON coin(feed, updated_at);
-  CREATE TABLE IF NOT EXISTS feed_meta (feed TEXT PRIMARY KEY, data TEXT, updated_at INTEGER);
-  CREATE TABLE IF NOT EXISTS coin_history (feed TEXT, mint TEXT, ts INTEGER, mcap REAL, data TEXT);
-  CREATE INDEX IF NOT EXISTS idx_hist_ts ON coin_history(ts);
-`);
+function createDbConnection() {
+  try {
+    const conn = new Database(dbFile);
+    conn.pragma('busy_timeout = 8000');
+    try { conn.pragma('journal_mode = WAL'); } catch { /* ignore */ }
+    conn.exec(`
+      CREATE TABLE IF NOT EXISTS coin (
+        feed TEXT, mint TEXT, data TEXT, mcap REAL,
+        updated_at INTEGER, first_seen INTEGER,
+        PRIMARY KEY (feed, mint)
+      );
+      CREATE INDEX IF NOT EXISTS idx_coin_feed_upd ON coin(feed, updated_at);
+      CREATE TABLE IF NOT EXISTS feed_meta (feed TEXT PRIMARY KEY, data TEXT, updated_at INTEGER);
+      CREATE TABLE IF NOT EXISTS coin_history (feed TEXT, mint TEXT, ts INTEGER, mcap REAL, data TEXT);
+      CREATE INDEX IF NOT EXISTS idx_hist_ts ON coin_history(ts);
+    `);
+    return conn;
+  } catch (err) {
+    console.error('[DB] Error opening database, attempting reset:', err?.message || err);
+    try { fs.unlinkSync(dbFile); } catch {}
+    try { fs.unlinkSync(`${dbFile}-wal`); } catch {}
+    try { fs.unlinkSync(`${dbFile}-shm`); } catch {}
+    const fresh = new Database(dbFile);
+    fresh.pragma('busy_timeout = 8000');
+    try { fresh.pragma('journal_mode = WAL'); } catch { /* ignore */ }
+    fresh.exec(`
+      CREATE TABLE IF NOT EXISTS coin (
+        feed TEXT, mint TEXT, data TEXT, mcap REAL,
+        updated_at INTEGER, first_seen INTEGER,
+        PRIMARY KEY (feed, mint)
+      );
+      CREATE INDEX IF NOT EXISTS idx_coin_feed_upd ON coin(feed, updated_at);
+      CREATE TABLE IF NOT EXISTS feed_meta (feed TEXT PRIMARY KEY, data TEXT, updated_at INTEGER);
+      CREATE TABLE IF NOT EXISTS coin_history (feed TEXT, mint TEXT, ts INTEGER, mcap REAL, data TEXT);
+      CREATE INDEX IF NOT EXISTS idx_hist_ts ON coin_history(ts);
+    `);
+    return fresh;
+  }
+}
+
+const db = createDbConnection();
 
 const upsertStmt = db.prepare(`
   INSERT INTO coin (feed, mint, data, mcap, updated_at, first_seen)

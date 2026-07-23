@@ -38,7 +38,7 @@ function str(name, fallback) {
 export const config = {
   rpcUrl: str('SOLANA_RPC_URL', 'https://api.mainnet-beta.solana.com'),
   wsUrl: str('PUMPPORTAL_WS_URL', 'wss://pumpportal.fun/api/data'),
-  port: num('PORT', 3000),
+  port: 3000,
 
   // Persistence (SQLite) — durable current state + rolling history.
   dbPath: str('DB_PATH', 'data/lily.db'),

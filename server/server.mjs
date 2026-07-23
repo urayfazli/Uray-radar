@@ -16,7 +16,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const root = path.resolve(__dirname, '..');
 
-const PORT = Number(process.env.PORT) || 3000;
+const PORT = 3000;
 
 // Auto-launch discovery daemons
 const SERVICES = [
